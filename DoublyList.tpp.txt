@@ -1,0 +1,219 @@
+template <typename T>
+DoublyList<T>::DoublyList()
+: header(new Node), trailer(new Node) {
+    header->next  = trailer;
+    trailer->prev = header;
+}
+
+template <typename T>
+DoublyList<T>::DoublyList(const DoublyList<T>& copyObj)
+: header(new Node), trailer(new Node) {
+    copy(copyObj);
+}
+
+template <typename T>
+DoublyList<T>& DoublyList<T>::operator=(const DoublyList<T>& rightObj) {
+    if (this != &rightObj) {
+        clear();
+        copy(rightObj);
+    }
+    return *this;
+}
+
+template <typename T>
+DoublyList<T>::~DoublyList() {
+    clear();
+    delete header;
+    delete trailer;
+    header = trailer = nullptr;
+}
+
+template <typename T>
+void DoublyList<T>::append(const T& elem) {
+    // TO DO: Implement the code for the append
+
+// last is the current last real car (or the front bumper if empty)
+    Node* last = trailer->prev;
+
+    //  build a brand-new car and paint its number (elem)
+    Node* n = new Node;
+    n->value = elem;
+
+    //  hook the new car BETWEEN 'last' and the back bumper
+    n->prev = last;       // new car holds hands with the old last (behind)
+    n->next = trailer;    // new car holds hands with the back bumper (ahead)
+    last->next    = n;    // old last now points to the new car
+    trailer->prev = n;    // back bumper points back to the new car
+
+    ++this->length;       //  our train got one car longer
+
+
+}
+
+template <typename T>
+void DoublyList<T>::clear() {
+    for (Node* curr = nullptr; header->next != trailer; ) {
+        curr = header->next->next;
+        delete header->next;
+        header->next = curr;
+    }
+
+    trailer->prev = header;
+    this->length  = 0;
+}
+
+template <typename T>
+void DoublyList<T>::copy(const DoublyList<T>& copyObj) {
+    this->length   = copyObj.length;
+    Node* myCurr   = header;
+    Node* copyCurr = copyObj.header->next;
+
+    while (copyCurr != copyObj.trailer) {
+        Node* n      = new Node(copyCurr->value);
+        myCurr->next = n;
+        n->prev      = myCurr;
+        myCurr       = n;
+        copyCurr     = copyCurr->next;
+    }
+
+    myCurr->next  = trailer;
+    trailer->prev = myCurr;
+}
+
+template <typename T>
+T DoublyList<T>::getElement(int position) const {
+    // TO DO: Implent code for getElement at position
+
+//  start at the first real car (right after the front bumper)
+    Node* cur = header->next;
+
+    //  walk 'position' steps to reach the target car
+    for (int i = 0; i < position; ++i) {
+        cur = cur->next;
+    }
+
+    //  hand back the number on that car
+    return cur->value;
+
+
+}
+
+template <typename T>
+int DoublyList<T>::getLength() const {
+    return this->length;
+}
+
+
+template <typename T>
+void DoublyList<T>::insert(int position, const T& elem) {
+  // TO DO: Implement code to insert an element to list
+// find the node that will be to the RIGHT of our new car
+    Node* right = nullptr;
+    if (position == this->length) {
+        // inserting at the very end: right neighbor is the back bumper
+        right = trailer;
+    } else {
+        // inserting in the middle/front: walk to the node currently at 'position'
+        right = header->next;
+        for (int i = 0; i < position; ++i) {
+            right = right->next;
+        }
+    }
+
+    Node* left = right->prev; // the neighbor just to the left
+
+    // build and paint the new car
+    Node* n = new Node;
+    n->value = elem;
+
+    //  hook it BETWEEN left and right
+    n->prev = left;
+    n->next = right;
+    left->next  = n;
+    right->prev = n;
+
+    ++this->length; //  one more car
+
+
+}
+
+template <typename T>
+bool DoublyList<T>::isEmpty() const {
+    return this->length  == 0
+        && header->next  == trailer
+        && trailer->prev == header;
+}
+
+template <typename T>
+void DoublyList<T>::remove(int position) {
+    // TO DO: Implement code to remove element at given position
+
+//  walk to the victim car
+    Node* victim = header->next;
+    for (int i = 0; i < position; ++i) {
+        victim = victim->next;
+    }
+
+    //  re-link neighbors to skip over the victim
+    Node* left  = victim->prev;
+    Node* right = victim->next;
+    left->next  = right;
+    right->prev = left;
+
+    //  tow the victim away
+    delete victim;
+
+    --this->length; //  one fewer car
+
+
+}
+
+template <typename T>
+bool DoublyList<T>::search(const T& elem) const {
+    // TO DO: Implement code to search for element
+    
+for (Node* cur = header->next; cur != trailer; cur = cur->next) {
+        if (cur->value == elem) {
+            return true; //  found it!
+        }
+    }
+    return false; //  not on board
+
+
+}
+
+template <typename T>
+void DoublyList<T>::replace(int position, const T& elem) {
+    // TO DO: Add code for replace method
+
+//  walk to the target car
+    Node* cur = header->next;
+    for (int i = 0; i < position; ++i) {
+        cur = cur->next;
+    }
+
+    //  repaint the number
+    cur->value = elem;
+
+
+}
+
+template <typename T>
+ostream& operator<<(ostream& outStream, const DoublyList<T>& myObj) {
+    if (myObj.isEmpty()) {
+        outStream << "List is empty, no elements to display.\n";
+    }
+    else {
+        typename DoublyList<T>::Node* curr = myObj.header->next;
+        while (curr != myObj.trailer) {
+            outStream << curr->value;
+            if (curr->next != myObj.trailer) {
+                outStream << " <--> ";
+            }
+            curr = curr->next;
+        }
+        outStream << endl;
+    }
+
+    return outStream;
+}
